@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -eu
+
+protected_branch="refs/heads/master"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "$protected_branch" ]; then
+        echo "Push отклонён: прямая отправка изменений в master запрещена." >&2
+        echo "Отправьте коммит в отдельную ветку и объедините изменения через pull request." >&2
+        echo "Push rejected: direct pushes to master are forbidden." >&2
+        echo "Push the commit to a separate branch and merge it through a pull request." >&2
+        exit 1
+    fi
+done
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+echo "Запуск Detekt перед push..."
+echo "Running Detekt before push..."
+./gradlew detekt

@@ -1,0 +1,137 @@
+name: Homework checks
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: homework-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Build, test and APK
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+
+    steps:
+      - name: Checkout submission
+        uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Allow Gradle Wrapper execution
+        run: chmod +x gradlew
+
+      - name: Run Detekt
+        id: detekt
+        continue-on-error: true
+        run: ./gradlew detekt --stacktrace
+
+      - name: Run unit tests
+        id: tests
+        continue-on-error: true
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Run Android Lint
+        id: lint
+        continue-on-error: true
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Build debug APK
+        id: build
+        continue-on-error: true
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        id: apk
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: FinanceApp-PR-${{ github.event.pull_request.number || github.run_number }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-reports-${{ github.event.pull_request.number || github.run_number }}
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Add results to Pull Request
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          APK_URL: ${{ steps.apk.outputs.artifact-url }}
+          DETEKT_RESULT: ${{ steps.detekt.outcome }}
+          TESTS_RESULT: ${{ steps.tests.outcome }}
+          LINT_RESULT: ${{ steps.lint.outcome }}
+          BUILD_RESULT: ${{ steps.build.outcome }}
+        shell: bash
+        run: |
+          result_icon() {
+            if [ "$1" = "success" ]; then
+              printf '✅ успешно'
+            else
+              printf '❌ ошибка'
+            fi
+          }
+
+          {
+            echo "## Результаты автоматической проверки"
+            echo
+            echo "- Detekt: $(result_icon "$DETEKT_RESULT")"
+            echo "- Unit-тесты: $(result_icon "$TESTS_RESULT")"
+            echo "- Android Lint: $(result_icon "$LINT_RESULT")"
+            echo "- Сборка APK: $(result_icon "$BUILD_RESULT")"
+            echo
+            echo "[Открыть полный журнал и отчёты Actions]($RUN_URL)"
+            if [ -n "$APK_URL" ]; then
+              echo
+              echo "[Скачать APK]($APK_URL)"
+            fi
+          } > "$RUNNER_TEMP/homework-result.md"
+
+          gh pr comment "$PR_NUMBER" \
+            --edit-last \
+            --create-if-none \
+            --body-file "$RUNNER_TEMP/homework-result.md"
+
+      - name: Fail unsuccessful verification
+        if: >-
+          steps.detekt.outcome != 'success' ||
+          steps.tests.outcome != 'success' ||
+          steps.lint.outcome != 'success' ||
+          steps.build.outcome != 'success'
+        run: |
+          echo "Homework verification failed. See the failed steps and uploaded reports."
+          exit 1
