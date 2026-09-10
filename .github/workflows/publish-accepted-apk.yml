@@ -1,0 +1,58 @@
+name: Publish accepted APK
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create tag and release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+      RELEASE_TAG: v1.0.${{ github.run_number }}
+
+    steps:
+      - name: Checkout accepted commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Allow Gradle Wrapper execution
+        run: chmod +x gradlew
+
+      - name: Verify accepted version and build APK
+        run: ./gradlew detekt testDebugUnitTest lintDebug assembleDebug --stacktrace
+
+      - name: Prepare APK for release
+        shell: bash
+        run: cp app/build/outputs/apk/debug/app-debug.apk "FinanceApp-${RELEASE_TAG}.apk"
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        shell: bash
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "FinanceApp-${RELEASE_TAG}.apk" \
+            --target "$MERGE_SHA" \
+            --title "FinanceApp ${RELEASE_TAG}" \
+            --generate-notes
