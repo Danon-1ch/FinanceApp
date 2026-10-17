@@ -47,8 +47,6 @@ private fun FinanceAppTheme(content: @Composable () -> Unit) {
 @Composable
 @Suppress("FunctionNaming")
 private fun FinanceAppScreen() {
-    val balance = 25_000
-    val transactionCount = 0
     var uiState by remember { mutableStateOf(MainUiState()) }
 
     Surface(
