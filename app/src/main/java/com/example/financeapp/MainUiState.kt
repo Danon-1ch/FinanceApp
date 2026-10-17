@@ -16,19 +16,24 @@ internal data class Transaction(
 )
 
 internal sealed interface MainUiEvent {
-    data class AddTransaction(val transaction: Transaction): MainUiEvent
+    data class AddTransaction(val transaction: Transaction) : MainUiEvent
 }
 
 internal fun reduce(
     state: MainUiState,
     event: MainUiEvent,
-): MainUiState = when (event) {
+):
+        MainUiState = when (event) {
     is MainUiEvent.AddTransaction -> {
-        val changeBalance = when (event.transaction.type)
-        {
-            TransactionType.DEPOSIT -> state.balance + event.transaction.amount
-            TransactionType.WITHDRAWAL -> state.balance - event.transaction.amount
+        val changeBalance = when (event.transaction.type) {
+            TransactionType.DEPOSIT -> {
+                state.balance + event.transaction.amount
+            }
+
+            TransactionType.WITHDRAWAL -> {
+                state.balance - event.transaction.amount
+            }
         }
-        state.copy(counter = state.counter +1, balance = changeBalance)
+        state.copy(counter = state.counter + 1, balance = changeBalance)
     }
 }
