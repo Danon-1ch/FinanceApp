@@ -1,4 +1,4 @@
-package com.example.financeapp
+/*package com.example.financeapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -107,3 +107,4 @@ private fun FinanceAppScreenPreview() {
         FinanceAppScreen()
     }
 }
+*/

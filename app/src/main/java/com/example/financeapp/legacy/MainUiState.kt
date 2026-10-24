@@ -1,4 +1,4 @@
-package com.example.financeapp.legacy
+/*package com.example.financeapp.legacy
 
 internal data class MainUiState(
     val balance: Int = 0,
@@ -33,3 +33,4 @@ internal fun reduce(state: MainUiState, event: MainUiEvent): MainUiState = when 
         state.copy(counter = state.counter + 1, balance = changeBalance)
     }
 }
+*/

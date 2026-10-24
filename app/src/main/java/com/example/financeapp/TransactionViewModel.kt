@@ -1,4 +1,4 @@
-package com.example.financeapp
+/*package com.example.financeapp
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -10,7 +10,7 @@ import com.example.financeapp.legacy.MainUiEvent
 import com.example.financeapp.legacy.MainUiState
 
 internal class TransactionViewModel : ViewModel() {
-    /*var uiState by mutableStateOf(MainUiState())
+    var uiState by mutableStateOf(MainUiState())
     private set
 fun onEvent(event: MainUiEvent) {
     uiState = reduce(uiState, event)
@@ -76,4 +76,3 @@ private fun reduce(
 }
 
  */
-}
