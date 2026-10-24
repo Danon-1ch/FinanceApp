@@ -77,7 +77,7 @@ private fun FinanceAppScreen() {
                     amount = 100,
                     type = TransactionType.DEPOSIT,
                 )
-                uiState = reduce(state = uiState, event = MainUiEvent.AddTransaction(transcaction))
+                uiState = reduce(state = uiState, event = MainUiEvent.AddTransaction(transaction))
             }) {
                 Text(text = stringResource(R.string.add_income_button))
             }
