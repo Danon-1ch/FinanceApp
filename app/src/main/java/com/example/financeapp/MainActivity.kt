@@ -73,7 +73,7 @@ private fun FinanceAppScreen() {
                 style = MaterialTheme.typography.headlineSmall,
             )
             Button(onClick = {
-                val transcaction = Transaction(
+                val transaction = Transaction(
                     amount = 100,
                     type = TransactionType.DEPOSIT,
                 )
