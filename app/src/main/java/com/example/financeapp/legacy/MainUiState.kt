@@ -1,4 +1,4 @@
-/*package com.example.financeapp.legacy
+package com.example.financeapp.legacy
 
 internal data class MainUiState(
     val balance: Int = 0,
@@ -22,15 +22,9 @@ internal sealed interface MainUiEvent {
 internal fun reduce(state: MainUiState, event: MainUiEvent): MainUiState = when (event) {
     is MainUiEvent.AddTransaction -> {
         val changeBalance = when (event.transaction.type) {
-            TransactionType.DEPOSIT -> {
-                state.balance + event.transaction.amount
-            }
-
-            TransactionType.WITHDRAWAL -> {
-                state.balance - event.transaction.amount
-            }
+            TransactionType.DEPOSIT -> state.balance + event.transaction.amount
+            TransactionType.WITHDRAWAL -> state.balance - event.transaction.amount
         }
         state.copy(counter = state.counter + 1, balance = changeBalance)
     }
 }
-*/
