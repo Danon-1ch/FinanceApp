@@ -21,15 +21,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material3.TextButton
 
 @Composable
 @Suppress("FunctionNaming", "LongMethod")
-internal fun TransactionScreen(viewModel: TransactionViewModel = viewModel()) {
+internal fun TransactionScreen(viewModel: TransactionViewModel, showBalance: Boolean, onOpenSettings: () -> Unit) {
     val state = viewModel.uiState
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
+            TextButton(onClick = onOpenSettings) {
+                Text(stringresource(R.string.balance_summary, state.balance, state.transactionCount))
+            } else {
+                Text(stringResource(R.string.transaction_count, state.transactionCount))
+        }
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .verticalScroll(rememberScrollState())
